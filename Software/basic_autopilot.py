@@ -1,6 +1,16 @@
 import cv2
 import numpy as np
 
+def findContours(edges):
+    for edge in edges:
+        img2, contour, hierarchy = cv2.findContours(edge, 1, 2)
+        contour_area =1# cv2.contourArea(contour)
+        if(contour_area > 50):
+            hull_area = cv2.contourArea(cv2.convexHull(contour))
+            solidity = float(contour_area)/hull_area
+
+
+
 def findRoadLines(image_path):
     img = cv2.imread(image_path, 1)
 
@@ -16,8 +26,8 @@ def findRoadLines(image_path):
     closed = cv2.morphologyEx(res, cv2.MORPH_CLOSE, kernel)
 
     # Lower and upper canny thresholds
-    lower_canny = 200
-    upper_canny = 300
+    lower_canny = 100
+    upper_canny = 200
 
     # Use canny to detect edges
     edges = cv2.Canny(closed, lower_canny, upper_canny)
@@ -28,16 +38,7 @@ def findRoadLines(image_path):
     if (lines == None):
         edges = cv2.Canny(img, lower_canny, upper_canny)
         lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=40, maxLineGap=10)
-    for edge in edges:
-        img2, contour, hierarchy = cv2.findContours(edge, 1, 2)
-        cv2.imshow("Test", img2)
-        contour_area = 1#cv2.contourArea(contour)
-        if(contour_area > 30):
-            hull_area = cv2.contourArea(cv2.convexHull(contour))
-            solidity = float(contour_area)/hull_area
-            if(solidity>0.7):
-                x1, y1, x2, y2 = cv2.HoughLinesP(edge, 1, np.pi/180, 100, minLineLength=10, maxLineGap=10)
-                cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=10)
+    findContours(edges)
     # Draw the lines (remove later)
     for line in lines:
         x1, y1, x2, y2 = line[0]
@@ -48,11 +49,12 @@ def findRoadLines(image_path):
     img2, contours, hierarchy = cv2.findContours(edges, 1, 2)
     for contour in contours:
         contour_area = cv2.contourArea(contour)
-        if(contour_area > 30):
+        if(contour_area > 10):
+            print("Contour area: " + str(contour_area))
             hull = cv2.convexHull(contour)
             hull_area = cv2.contourArea(hull)
             solidity = float(contour_area)/hull_area
-            if (solidity<0.8) and (solidity>0.05):
+            if solidity>0.05:
                 rect = cv2.minAreaRect(contour)
                 box = np.int0(cv2.boxPoints(rect))
                 cv2.drawContours(img, [box], 0, (0,0,255))
@@ -61,7 +63,7 @@ def findRoadLines(image_path):
     return img
 
 # Run findRoadLines on a test image
-linesFound = findRoadLines("/Users/cbmonk/AnacondaProjects/SelfDrivingCar/Test/8.png")
+linesFound = findRoadLines("/Users/cbmonk/AnacondaProjects/SelfDrivingCar/Test/7.png")
 cv2.imshow("Lines detected", linesFound)
 
 # Close everything out when any key is pressed
