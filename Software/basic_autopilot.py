@@ -15,7 +15,7 @@ def drawBoundingRects(img, edges):
     img2, contours, hierarchy = cv2.findContours(edges, 1, 2)
     for contour in contours:
         contour_area = cv2.contourArea(contour)
-        if(contour_area > 10):
+        if(contour_area > 20):
             print("Contour area: " + str(contour_area))
             # Finds the portion of the contour that is convex
             hull = cv2.convexHull(contour)
@@ -50,18 +50,17 @@ def findRoadLines(image_path):
     # Use canny to detect edges
     edges = cv2.Canny(closed, lower_canny, upper_canny)
     # Fit lines to the canny edges
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=40, maxLineGap=10)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=100, maxLineGap=10)
 
     # If thresholding didn't work, use the original image
     if (lines == None):
         edges = cv2.Canny(img, lower_canny, upper_canny)
-        lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=40, maxLineGap=10)
-    findContours(edges)
-    # Draw the lines (remove later)
+        lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=100, maxLineGap=10)
+    #findContours(edges)
+    # Draw the lines
     for line in lines:
         x1, y1, x2, y2 = line[0]
-        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=10)
-
+        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=7)
 
     # Draw rotated rectangles around the contours
     img2 = drawBoundingRects(img, edges)
@@ -70,7 +69,7 @@ def findRoadLines(image_path):
     return img
 
 # Run findRoadLines on a test image
-linesFound = findRoadLines("/Users/cbmonk/AnacondaProjects/SelfDrivingCar/Test/8.png")
+linesFound = findRoadLines("/Users/cbmonk/AnacondaProjects/SelfDrivingCar/Test/5.png")
 cv2.imshow("Lines detected", linesFound)
 
 # Close everything out when any key is pressed
